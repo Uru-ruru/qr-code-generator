@@ -1,0 +1,74 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello IndexController!{% endblock %}
+
+{% block body %}
+    <style>
+        .example-wrapper {
+            margin: 1em auto;
+            max-width: 800px;
+            width: 95%;
+            font: 18px/1.5 sans-serif;
+        }
+
+        .example-wrapper code {
+            background: #F5F5F5;
+            padding: 2px 6px;
+        }
+    </style>
+
+    <div class="example-wrapper">
+        <h1>QR Code Generator</h1>
+
+        <form action="/generate_data" method="post" class="ajax-form">
+            <label>
+                <input name="data">
+            </label>
+            <label>
+                <input name="size" value="300">
+            </label>
+            <button type="submit">Generate</button>
+        </form>
+        <div>
+            <img src="" alt="" class="qr-img">
+        </div>
+        <div>
+            <a class="qr-link"></a>
+        </div>
+    </div>
+    <script>
+        document.querySelector('.ajax-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            let formData = new FormData(this);
+            let parsedData = {};
+            for (let name of formData) {
+                if (typeof (parsedData[name[0]]) == "undefined") {
+                    let tempdata = formData.getAll(name[0]);
+                    if (tempdata.length > 1) {
+                        parsedData[name[0]] = tempdata;
+                    } else {
+                        parsedData[name[0]] = tempdata[0];
+                    }
+                }
+            }
+
+            let options = {};
+            switch (this.method.toLowerCase()) {
+                case 'post':
+                    options.body = JSON.stringify(parsedData);
+                case 'get':
+                    options.method = this.method;
+                    options.headers = {'Content-Type': 'application/json'};
+                    break;
+            }
+
+            fetch(this.action, options).then(r => r.json()).then(data => {
+                const link = '/qr_code/' + data.data + '.png';
+                document.querySelector('.qr-img').src = link;
+                document.querySelector('.qr-link').innerHTML = link;
+                document.querySelector('.qr-link').href = link;
+
+            });
+        });
+    </script>
+{% endblock %}
